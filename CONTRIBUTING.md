@@ -1,0 +1,3 @@
+## Contributing Guide
+
+Thank you for considering a contribution! Here's how to get started...
