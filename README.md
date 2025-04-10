@@ -4,6 +4,8 @@
 
 This repository contains the full open-source release of the L&ASER laser weeding platform...
 
-![Laser Weeding](./media/laser.gif)
+<p style="font-size: 50px;">
+  <a href="https://www.laudando.com/fight" target="_blank">https://www.laudando.com/fight</a>
+</p>
 
-We are cleaning up the code and adding a lot of documentation, the full code will be published shortly.
+![Laser Weeding](./media/laser.gif)
