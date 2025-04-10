@@ -4,4 +4,6 @@
 
 This repository contains the full open-source release of the L&ASER laser weeding platform...
 
+![Laser Weeding](./media/laser.gif)
+
 We are cleaning up the code and adding a lot of documentation, the full code will be published shortly.
