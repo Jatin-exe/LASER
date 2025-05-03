@@ -44,7 +44,7 @@ namespace alpha
         //this->warmUpModel("/path/to/test.png(or)jpg", 65);
 
         // ROS Subscriber
-        this->imageDataSub_ = this->create_subscription<sensor_msgs::msg::Image>("/image_raw", rclcpp::QoS(rclcpp::KeepLast(1)).best_effort().durability_volatile(), std::bind(&Perception::imageCallback_, this, std::placeholders::_1));
+        this->imageDataSub_ = this->create_subscription<sensor_msgs::msg::Image>("/your/camera/topic", rclcpp::QoS(rclcpp::KeepLast(1)).best_effort().durability_volatile(), std::bind(&Perception::imageCallback_, this, std::placeholders::_1));
         this->detectionArrayPub_ = this->create_publisher<alpha_perception::msg::DetectionArray>("/alpha_perception/detections", rclcpp::QoS(rclcpp::KeepLast(1)).best_effort().durability_volatile());
         this->networkImagePub_ = this->create_publisher<sensor_msgs::msg::Image>("/alpha_perception/detection_image", rclcpp::QoS(rclcpp::KeepLast(1)).best_effort().durability_volatile());
         this->inferenceTimePub_ = this->create_publisher<std_msgs::msg::Int16>("/alpha_perception/inference_time", rclcpp::QoS(rclcpp::KeepLast(1)).best_effort().durability_volatile());
