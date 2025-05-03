@@ -1,0 +1,9 @@
+build
+install
+log
+weights
+*.onnx
+*.trt
+settings.json
+datasets
+.vscode
