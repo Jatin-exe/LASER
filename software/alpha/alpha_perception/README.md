@@ -7,6 +7,7 @@ Alpha Perception is the legacy perception system developed for the Alpha version
 </div>
 
 > *This code is no longer in use at Laudando & Associates LLC due to limitations in inference speed and lack of cross-modal perception support.*  
+
 > *Refactored in May 2025 for compatibility with the latest NVIDIA CUDA libraries. Last field-tested in early 2024.*
 
 
