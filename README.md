@@ -26,11 +26,26 @@ The Dual Licensing can be viewed [here](LAser_Dual_Licensing_Summary_4_20_25.pdf
 
 ## Updates
 
+- [x] **(2025-05-14)** Add [Alpha Training](software/alpha/alpha_training/)
 - [x] **(2025-05-03)** Add [Alpha Perception](software/alpha/alpha_perception/)
+
+## Setup
+
+```bash
+git clone --recursive https://github.com/Laudando-Associates-LLC/LASER.git
+```
+
+OR 
+
+```bash
+git clone ---recursive git@github.com:Laudando-Associates-LLC/LASER.git
+```
 
 ## License
 This software is released under the [L&Aser Public Use License (Based on SSPL v1)](LICENSE), copyright © 2025
-Laudando & Associates LLC.
+Laudando & Associates LLC. 
+
+The L&A Pucks Dataset use [L&Aser Dataset Replication License (Version 1.0)](https://huggingface.co/datasets/Laudando-Associates-LLC/pucks/blob/main/LICENSE).
 
 Please note:
 

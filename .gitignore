@@ -7,3 +7,11 @@ weights
 settings.json
 datasets
 .vscode
+*.jpg
+*.json
+*.pth
+*.webp
+*.onnx
+pytorch_model.bin
+/software/alpha/alpha_training/pucks_dataset
+/software/alpha/alpha_training/models/dfine*
