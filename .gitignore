@@ -7,7 +7,6 @@ weights
 settings.json
 datasets
 .vscode
-*.jpg
 *.json
 *.pth
 *.webp
