@@ -97,7 +97,7 @@ If the pretrained models were downloaded from Hugging Face.
 ```bash
 bash test.sh
 ```
-A prompt will allows to test the model variant of choice.
+A prompt allows to test the model variant of choice.
 
 ```bash
 Choose a model size to test:
