@@ -62,6 +62,10 @@ The D-FINE family includes five model sizes trained on the [L&A Pucks Dataset](h
 
 ## Setup
 
+### D-FINE as submodule
+
+Incase the submodule was not cloned, make sure to run ```git submodule update --init --recursive``` at the root.
+
 Download the [L&A Pucks Dataset](https://huggingface.co/datasets/Laudando-Associates-LLC/pucks) from Hugging Face.
 
 ```bash
