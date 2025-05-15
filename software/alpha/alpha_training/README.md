@@ -92,7 +92,7 @@ conda activate dfine
 ```
 
 ## Quick Start
-The the pretrained models were downloaded from Hugging Face.
+If the pretrained models were downloaded from Hugging Face.
 
 ```bash
 bash test.sh
