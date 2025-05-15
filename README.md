@@ -1,7 +1,7 @@
 <h1 align="center"><strong>L&amp;ASER</strong></h1>
 
 <p align="center">
-  <a href="https://huggingface.co/Laudando-Associates-LLC-">
+  <a href="https://huggingface.co/Laudando-Associates-LLC">
     <img src="https://img.shields.io/badge/HuggingFace-Page-yellow?logo=huggingface&style=for-the-badge">
   </a>
 </p>
