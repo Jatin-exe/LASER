@@ -1,5 +1,11 @@
 <h1 align="center"><strong>L&amp;ASER</strong></h1>
 
+<p align="center">
+  <a href="https://huggingface.co/Laudando-Associates-LLC-">
+    <img src="https://img.shields.io/badge/HuggingFace-Page-yellow?logo=huggingface&style=for-the-badge">
+  </a>
+</p>
+
 ## A laser weeder for all farmers, big and small
 
 This repository contains open-source releases of the L&Aser.
