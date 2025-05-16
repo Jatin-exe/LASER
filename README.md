@@ -44,7 +44,7 @@ git clone --recursive https://github.com/Laudando-Associates-LLC/LASER.git
 OR 
 
 ```bash
-git clone ---recursive git@github.com:Laudando-Associates-LLC/LASER.git
+git clone --recursive git@github.com:Laudando-Associates-LLC/LASER.git
 ```
 
 ## License
