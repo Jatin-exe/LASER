@@ -79,6 +79,18 @@ ros2 launch alpha_perception perception_demo.launch.py model_variant:=xlarge gui
 | `/alpha_perception/inference_time` | Inference time in ms from reading the input camera stream to publishing the `DetectionArray` msg | `std_msgs/msg/Int16` |
 
 
+## Metrics
+
+The inference time has been measured from the input caemra frame to publishing the `DetectionArray` message in ROS 2, so this encompasses the preprocessing, forward pass and postprocessing.
+
+<p align="center" style="margin: 0; padding: 0;">
+  <img src="../../../media/alpha_perception_metrics.png"
+       alt="alpha perception metrics"
+       style="width: 100%; height: auto; display: block; max-width: 100%;" />
+</p>
+
+> All tests were carried out with `gui:=false` and on a RTX A6000, ROS 2 message overhead is dependent on the hardware CPU.
+
 ## License
 The D-FINE models use [Apache License 2.0](https://github.com/Peterande/D-FINE/blob/master/LICENSE).
 
