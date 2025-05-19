@@ -54,6 +54,8 @@ Laudando & Associates LLC.
 
 The L&A Pucks Dataset use [L&Aser Dataset Replication License (Version 1.0)](https://huggingface.co/datasets/Laudando-Associates-LLC/pucks/blob/main/LICENSE).
 
+The L&A Pucks ROS 2 Dataset use [L&Aser Dataset Replication License (Version 1.0)](https://huggingface.co/datasets/Laudando-Associates-LLC/pucks-ros2/blob/main/LICENSE).
+
 Please note:
 
   * Commercial use requires a separate license.
