@@ -32,6 +32,7 @@ The Dual Licensing can be viewed [here](LAser_Dual_Licensing_Summary_4_20_25.pdf
 
 ## Updates
 
+- [x] **(2025-05-18)** Update [Alpha Perception](software/alpha/alpha_perception/) to Gen 2
 - [x] **(2025-05-14)** Add [Alpha Training](software/alpha/alpha_training/)
 - [x] **(2025-05-03)** Add [Alpha Perception](software/alpha/alpha_perception/)
 

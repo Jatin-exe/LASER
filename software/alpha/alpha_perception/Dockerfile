@@ -37,6 +37,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # 4. Source ROS setup in default shell
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc
 
+RUN pip install onnx \
+    onnxsim \
+    onnxruntime \
+    huggingface_hub[hf_xet]
+
 WORKDIR /ros2_ws
 
 # 5. Copy entrypoint script into container

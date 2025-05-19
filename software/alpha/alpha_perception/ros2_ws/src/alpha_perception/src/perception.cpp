@@ -18,73 +18,67 @@
 
 namespace alpha
 {
-
-    Perception::Perception() : Node("alpha_perception")
+    alpha::Perception::Perception() : Node("alpha_perception")
     {
-        // Initialize CUDA stream
-        cudaStreamCreate(&(this->stream_));
+        // Declare and get the model_variant parameter
+        this->declare_parameter<std::string>("model_variant", "nano");
+        std::string variant_full = this->get_parameter("model_variant").as_string();
 
-        if (!this->loadTRTEngine_("/path/to/your/trt/engine")) 
+        // Mapping from full name to short variant
+        std::map<std::string, std::string> variant_map = {
+            {"nano", "n"},
+            {"small", "s"},
+            {"medium", "m"},
+            {"large", "l"},
+            {"xlarge", "x"}
+        };
+
+        if (variant_map.find(variant_full) == variant_map.end())
         {
-            throw std::runtime_error("Failed to load TensorRT engine");
+            RCLCPP_FATAL(this->get_logger(), "Invalid model_variant '%s'. Must be one of: nano, small, medium, large, xlarge", variant_full.c_str());
+            throw std::runtime_error("Invalid model_variant");
         }
 
-        // Initialize input and output buffers
-        this->imageHostBuffer_.resize(this->imageSize_ / sizeof(float));
-        this->outputHostBuffer_.resize(this->outputSize_ / sizeof(float));
+        std::string variant = variant_map[variant_full];
+        std::string model_path = "/ros2_ws/src/alpha_perception/models/dfine_hgnetv2_" + variant + "_custom/model.trt";
 
-        // Allocate GPU memory for input and output
-        cudaMalloc(&(this->imageDeviceBuffer_), this->imageSize_);
-        cudaMalloc(&(this->outputDeviceBuffer_), this->outputSize_);
+        // Load engine and buffers
+        if (!this->loadTRTEngine_(model_path) || !this->setupBuffers_())
+        {
+            throw std::runtime_error("Failed to load TensorRT engine or buffer failure");
+        }
 
-        // Create CUDA stream
-        cudaStreamCreate(&(this->stream_));
-
-        // Model Warm up
-        //this->warmUpModel("/path/to/test.png(or)jpg", 65);
+        this->declare_parameter<bool>("gui", false);
+        this->gui_ = this->get_parameter("gui").as_bool();
 
         // ROS Subscriber
-        this->imageDataSub_ = this->create_subscription<sensor_msgs::msg::Image>("/your/camera/topic", rclcpp::QoS(rclcpp::KeepLast(1)).best_effort().durability_volatile(), std::bind(&Perception::imageCallback_, this, std::placeholders::_1));
+        this->imageDataSub_ = this->create_subscription<sensor_msgs::msg::Image>("/image_raw", rclcpp::QoS(rclcpp::KeepLast(1)).best_effort().durability_volatile(), std::bind(&Perception::imageCallback_, this, std::placeholders::_1));
+
+        // ROS Publishers
         this->detectionArrayPub_ = this->create_publisher<alpha_perception::msg::DetectionArray>("/alpha_perception/detections", rclcpp::QoS(rclcpp::KeepLast(1)).best_effort().durability_volatile());
-        this->networkImagePub_ = this->create_publisher<sensor_msgs::msg::Image>("/alpha_perception/detection_image", rclcpp::QoS(rclcpp::KeepLast(1)).best_effort().durability_volatile());
         this->inferenceTimePub_ = this->create_publisher<std_msgs::msg::Int16>("/alpha_perception/inference_time", rclcpp::QoS(rclcpp::KeepLast(1)).best_effort().durability_volatile());
-    
     }
 
-    Perception::~Perception()
+    alpha::Perception::~Perception()
     {
-        // Free GPU memory
-        cudaFree(this->imageDeviceBuffer_);
-        cudaFree(this->outputDeviceBuffer_);
-
-        // Destroy TensorRT objects
+        cudaFreeHost(this->pinnedHostInput_);
+        cudaFree(this->deviceInput_);
+        cudaFree(this->deviceDetections_);
+        cudaFree(this->deviceValidCount_);
         delete this->context_;
         delete this->engine_;
         delete this->runtime_;
+        cv::destroyAllWindows();
     }
 
-    void Perception::warmUpModel(const std::string& imagePath, int warmUpIterations)
+    int alpha::Perception::calculateVolume_(const nvinfer1::Dims& dims)
     {
-        // Load the image from the specified path
-        cv::Mat image = cv::imread(imagePath);
-
-        // Resize the image to the input size expected by the neural network
-        cv::Mat resizedImage;
-        cv::resize(image, resizedImage, cv::Size(640, 384));
-
-        // Convert the image to float and normalize
-        cv::Mat floatImage;
-        resizedImage.convertTo(floatImage, CV_32FC3, 1.0 / 255.0);
-
-        // Convert to blob format for neural network
-        cv::Mat blob = cv::dnn::blobFromImage(floatImage, 1.0, cv::Size(), cv::Scalar(), false, false);
-
-        for (int i = 0; i < warmUpIterations; ++i) auto _ = this->performInference_(blob);
-
-        RCLCPP_INFO(this->get_logger(), "Warm-up completed.");
+        int vol = 1;
+        for (int i = 0; i < dims.nbDims; ++i) vol *= dims.d[i];
+        return vol;
     }
 
-    bool Perception::loadTRTEngine_(const std::string& engineFilePath)
+    bool alpha::Perception::loadTRTEngine_(const std::string& engineFilePath)
     {
         std::ifstream engineFile(engineFilePath, std::ios::binary);
         if (!engineFile)
@@ -100,7 +94,7 @@ namespace alpha
         engineFile.close();
 
         // Deserialize the engine
-        this->runtime_ = nvinfer1::createInferRuntime(gLogger);
+        this->runtime_ = nvinfer1::createInferRuntime(alpha::gLogger);
         this->engine_ = this->runtime_->deserializeCudaEngine(static_cast<const void*>(engineData.data()), fileSize);
 
         if (!this->engine_)
@@ -116,303 +110,248 @@ namespace alpha
             return false;
         }
 
-        // Get input and output tensor names
-        const char* inputName = this->engine_->getIOTensorName(0);
-        const char* outputName = this->engine_->getIOTensorName(1);
-
-        // Get tensor shapes
-        nvinfer1::Dims inputDims = this->engine_->getTensorShape(inputName);
-        nvinfer1::Dims outputDims = this->engine_->getTensorShape(outputName);
-
-        // Calculate buffer sizes (assumes float32)
-        this->imageSize_ = this->calculateVolume_(inputDims) * sizeof(float);
-        this->outputSize_ = this->calculateVolume_(outputDims) * sizeof(float);
-
-        // Resize host buffers
-        this->imageHostBuffer_.resize(this->imageSize_ / sizeof(float));
-        this->outputHostBuffer_.resize(this->outputSize_ / sizeof(float));
-
-        // Allocate device memory
-        if (cudaMalloc(&this->imageDeviceBuffer_, this->imageSize_) != cudaSuccess ||
-            cudaMalloc(&this->outputDeviceBuffer_, this->outputSize_) != cudaSuccess)
-        {
-            RCLCPP_ERROR(this->get_logger(), "Failed to allocate device memory");
-            return false;
-        }
-
-        RCLCPP_INFO(this->get_logger(), "Loaded Engine file %s", engineFilePath.c_str());
+        RCLCPP_INFO(this->get_logger(), "Deserialized CUDA Engine %s", engineFilePath.c_str());
         return true;
     }
 
-    int Perception::calculateVolume_(const nvinfer1::Dims& d)
+    bool alpha::Perception::setupBuffers_()
     {
-        int vol = 1;
-        for (int i = 0; i < d.nbDims; ++i) vol *= d.d[i];
-        return vol;
-    }
-
-    std::vector<float> Perception::matToVector_(const cv::Mat& mat)
-    {
-        std::vector<float> vec;
-        vec.assign((float*)mat.datastart, (float*)mat.dataend);
-        return vec;
-    }
-
-    std::tuple<std::vector<cv::Rect>, std::vector<float>, Eigen::MatrixXf, std::vector<float>, std::vector<int>> Perception::performInference_(const cv::Mat& inputMat)
-    {
-        // Creating the input
-        std::vector<float> inputImage = this->matToVector_(inputMat);
-        
-        // Copy input from Mat to the input device buffer
-        cudaMemcpyAsync(
-                this->imageDeviceBuffer_, 
-                inputImage.data(), 
-                this->imageSize_, 
-                cudaMemcpyHostToDevice, 
-                this->stream_
-        );
-
-        // Set Tensor Addresses (REQUIRED for enqueueV3)
-        const char* inputName  = this->engine_->getIOTensorName(0);
-        const char* outputName = this->engine_->getIOTensorName(1);
-    
-        this->context_->setTensorAddress(inputName, this->imageDeviceBuffer_);
-        this->context_->setTensorAddress(outputName, this->outputDeviceBuffer_);
-    
-        // Run inference
-        if (!this->context_->enqueueV3(this->stream_))
-        {
-            RCLCPP_ERROR(this->get_logger(), "enqueueV3() failed");
-            throw std::runtime_error("TensorRT inference failed");
+        // Create CUDA stream
+        if (cudaStreamCreate(&(this->stream_)) != cudaSuccess) {
+            RCLCPP_ERROR(this->get_logger(), "Failed to create CUDA stream");
+            return false;
         }
+
+        int numTensors = this->engine_->getNbIOTensors();
+        for (int i = 0; i < numTensors; ++i)
+        {
+            const char* name = this->engine_->getIOTensorName(i);
+            nvinfer1::DataType dtype = this->engine_->getTensorDataType(name);
+            nvinfer1::Dims shape = this->engine_->getTensorShape(name);
+
+            // Calculate buffer size in elements and bytes
+            int numElements = this->calculateVolume_(shape);
+            size_t byteSize = 0;
+            void* devicePtr = nullptr;
+
+            // Allocate based on data type
+            if (dtype == nvinfer1::DataType::kHALF)
+            {
+                byteSize = numElements * sizeof(__half);
+                this->hostFP16_[name].resize(numElements);
+            }
+            else if (dtype == nvinfer1::DataType::kINT64)
+            {
+                byteSize = numElements * sizeof(int64_t);
+                this->hostInt64_[name].resize(numElements);
+            }
+            else
+            {
+                RCLCPP_ERROR(this->get_logger(), "Unsupported data type for tensor: %s", name);
+                return false;
+            }
+
+            // Allocate device memory
+            if (cudaMalloc(&devicePtr, byteSize) != cudaSuccess)
+            {
+                RCLCPP_ERROR(this->get_logger(), "Failed to allocate device memory for tensor: %s", name);
+                return false;
+            }
+
+            // Store buffer and bind to execution context
+            this->deviceBuffers_[name] = devicePtr;
+            this->context_->setTensorAddress(name, devicePtr);
+        }
+
+        RCLCPP_INFO(this->get_logger(), "All dynamic buffers allocated and bound.");
         
-        // Copy the output from the output device buffer to the output host buffer
-        cudaMemcpyAsync(
-            this->outputHostBuffer_.data(), 
-            this->outputDeviceBuffer_, 
-            this->outputSize_, 
-            cudaMemcpyDeviceToHost, 
+        cudaHostAlloc(&(this->pinnedHostInput_), this->maxInputSize_ * sizeof(uchar3), cudaHostAllocDefault);
+        cudaMalloc(&(this->deviceInput_), this->maxInputSize_ * sizeof(uchar3));
+
+        // Estimate max number of detections (safe upper bound from output tensor size)
+        int maxDetections = this->hostInt64_["labels"].size();
+
+        // Allocate GPU buffer for detections
+        if (cudaMalloc(&(this->deviceDetections_), maxDetections * sizeof(alpha::perception_kernels::Detection)) != cudaSuccess)
+        {
+            RCLCPP_ERROR(this->get_logger(), "Failed to allocate deviceDetections_");
+            return false;
+        }
+
+        // Allocate GPU counter
+        if (cudaMalloc(&(this->deviceValidCount_), sizeof(int)) != cudaSuccess)
+         {
+            RCLCPP_ERROR(this->get_logger(), "Failed to allocate deviceValidCount_");
+            return false;
+        }
+
+        // Preallocate host-side buffer (CPU)
+        this->hostDetections_.resize(maxDetections);
+        
+        return true;
+    }
+
+    std::tuple<float, int, int> alpha::Perception::preprocessImage_(const cv::Mat& input)
+    {
+        const int targetSize = this->engine_->getTensorShape("images").d[2];
+        int orig_h = input.rows;
+        int orig_w = input.cols;
+
+        float ratio = std::min(static_cast<float>(targetSize) / orig_w, static_cast<float>(targetSize) / orig_h);
+        int new_w = static_cast<int>(orig_w * ratio);
+        int new_h = static_cast<int>(orig_h * ratio);
+        int pad_w = (targetSize - new_w) / 2;
+        int pad_h = (targetSize - new_h) / 2;
+
+        // Sanity check to avoid overflow (optional)
+        if (orig_h * orig_w > static_cast<int>(this->maxInputSize_)) {
+            RCLCPP_ERROR(this->get_logger(), "Input size exceeds maxInputSize_: %dx%d > %zu", orig_w, orig_h, this->maxInputSize_);
+            throw std::runtime_error("Image too large for preallocated buffers");
+        }
+
+        // Copy input image to pinned host buffer
+        std::memcpy(this->pinnedHostInput_, input.ptr<uchar3>(), orig_h * orig_w * sizeof(uchar3));
+
+        // Async copy to GPU
+        cudaMemcpyAsync(this->deviceInput_, this->pinnedHostInput_, orig_h * orig_w * sizeof(uchar3), cudaMemcpyHostToDevice, this->stream_);
+
+        // Launch CUDA preprocessing kernel
+        __half* deviceOutput = reinterpret_cast<__half*>(this->deviceBuffers_["images"]);
+        alpha::perception_kernels::launch_preprocess_kernel(
+            this->deviceInput_,
+            deviceOutput,
+            orig_w,
+            orig_h,
+            targetSize,
+            ratio,
+            pad_w,
+            pad_h,
             this->stream_
         );
 
-        // Wait for all CUDA operations to finish
+        return std::make_tuple(ratio, pad_w, pad_h);
+    }
+
+    void alpha::Perception::runInference_()
+    {
+        if (!this->context_) {
+            RCLCPP_ERROR(this->get_logger(), "Execution context is not initialized.");
+            return;
+        }
+
+        // --- 1. Upload input: orig_target_sizes ---
+        std::vector<int64_t>& sizeHost = this->hostInt64_["orig_target_sizes"];
+        sizeHost[0] = this->engine_->getTensorShape("images").d[2];
+        sizeHost[1] = this->engine_->getTensorShape("images").d[3];
+
+        cudaMemcpyAsync(this->deviceBuffers_["orig_target_sizes"], sizeHost.data(), sizeHost.size() * sizeof(int64_t), cudaMemcpyHostToDevice, this->stream_);
+
+        // --- 2. Set input shapes ---
+        bool shapeOk = true;
+        shapeOk &= this->context_->setInputShape("images", this->engine_->getTensorShape("images"));
+        shapeOk &= this->context_->setInputShape("orig_target_sizes", this->engine_->getTensorShape("orig_target_sizes"));
+        if (!shapeOk) 
+        {
+            RCLCPP_ERROR(this->get_logger(), "Failed to set input shapes.");
+            return;
+        }
+
+        // --- 3. Run inference ---
+        if (!this->context_->enqueueV3(this->stream_)) 
+        {
+            RCLCPP_ERROR(this->get_logger(), "TensorRT inference failed.");
+            return;
+        }
+    }
+
+    std::tuple<std::vector<cv::Rect2f>, std::vector<float>, std::vector<int64_t>, std::vector<cv::Point2f>, std::vector<float>> alpha::Perception::postprocessDetections_(float ratio, int pad_w, int pad_h, float conf_thresh)
+    {
+        int num_detections = this->hostInt64_["labels"].size();  // Same as before
+
+        // Reset counter on GPU
+        cudaMemsetAsync(this->deviceValidCount_, 0, sizeof(int), this->stream_);
+
+        // Launch GPU postprocessing kernel
+        alpha::perception_kernels::launch_postprocess_kernel(
+            reinterpret_cast<__half*>(this->deviceBuffers_["boxes"]),
+            reinterpret_cast<__half*>(this->deviceBuffers_["scores"]),
+            reinterpret_cast<int64_t*>(this->deviceBuffers_["labels"]),
+            num_detections,
+            conf_thresh,
+            ratio,
+            pad_w,
+            pad_h,
+            this->deviceDetections_,
+            this->deviceValidCount_,
+            this->stream_
+        );
+
+        // Copy back the number of valid detections
+        int valid_count = 0;
+        cudaMemcpyAsync(&valid_count, this->deviceValidCount_, sizeof(int), cudaMemcpyDeviceToHost, this->stream_);
         cudaStreamSynchronize(this->stream_);
 
-        // Map the vector to a 2D Eigen Matrix
-        Eigen::Map<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> outputMatrix(this->outputHostBuffer_.data(), 7, 5040); // For just one single class in this case weeds
-        Eigen::MatrixXf matrixXfOutput = outputMatrix;
-        std::tuple<std::vector<cv::Rect>, std::vector<float>, Eigen::MatrixXf, std::vector<float>, std::vector<int>> outputFromNetwork = this->postProcess_(matrixXfOutput);
-        
-        return outputFromNetwork;
-    }
+        // Resize host buffer just once (if needed)
+        this->hostDetections_.resize(valid_count);
 
-    std::tuple<std::vector<cv::Rect>, std::vector<float>, Eigen::MatrixXf, std::vector<float>, std::vector<int>> Perception::postProcess_(Eigen::MatrixXf& data, float conf_thres, float iou_thres)
-    {
-        // Transpose the matrix for easier row-wise access
-        Eigen::MatrixXf transposedData = data.transpose();
+        // Copy back final detections from device to host
+        cudaMemcpy(this->hostDetections_.data(), this->deviceDetections_, valid_count * sizeof(alpha::perception_kernels::Detection), cudaMemcpyDeviceToHost);
 
-        // Prepare containers for filtered data
-        std::vector<cv::Rect> cvRects;
-        std::vector<float> filteredScores;
-        std::vector<int> classIds;
+        // Prepare output containers
+        std::vector<cv::Rect2f> boxes;
+        std::vector<float> scores;
+        std::vector<int64_t> labels;
+        std::vector<cv::Point2f> centers;
         std::vector<float> areas;
-        int numData = transposedData.rows();
-        cvRects.reserve(numData);
-        filteredScores.reserve(numData);
-        classIds.reserve(numData);
-        areas.reserve(numData);
 
-        Eigen::MatrixXf filteredKpts(numData, 2);
+        boxes.reserve(valid_count);
+        scores.reserve(valid_count);
+        labels.reserve(valid_count);
+        centers.reserve(valid_count);
+        areas.reserve(valid_count);
 
-        int count = 0;
-
-        // Single loop for data processing
-        for (int i = 0; i < numData; ++i)
+        for (const alpha::perception_kernels::Detection& det : this->hostDetections_)
         {
-            float centerX = transposedData(i, 0);
-            float centerY = transposedData(i, 1);
-            float width = transposedData(i, 2);
-            float height = transposedData(i, 3);
-            int x = static_cast<int>(centerX - 0.5 * width);
-            int y = static_cast<int>(centerY - 0.5 * height);
-
-            float weed_scores = transposedData(i, 4);
-            //float crop_scores = transposedData(i, 5);
-
-            if (weed_scores > conf_thres) 
-            {
-                cvRects.emplace_back(x, y, static_cast<int>(width), static_cast<int>(height));
-                areas.push_back(width * height);
-                filteredScores.push_back(weed_scores);
-                classIds.push_back(0); // Class ID for weed
-                filteredKpts.row(count++) = transposedData.block<1, 2>(i, 5);
-            }
-            /*
-            else if (crop_scores > conf_thres) 
-            {
-                cvRects.emplace_back(x, y, static_cast<int>(width), static_cast<int>(height));
-                areas.push_back(width * height);
-                filteredScores.push_back(crop_scores);
-                classIds.push_back(1); // Class ID for crop
-                filteredKpts.row(count++) = transposedData.block<1, 2>(i, 6);
-            }
-            */
+            boxes.emplace_back(det.x, det.y, det.w, det.h);
+            scores.push_back(det.score);
+            labels.push_back(det.label);
+            centers.emplace_back(det.cx, det.cy);
+            areas.push_back(det.area);
         }
 
-        // Resize keypoints matrix to the actual count
-        filteredKpts.conservativeResize(count, Eigen::NoChange);
-
-        // Perform Non-Maximum Suppression (NMS)
-        std::vector<int> nmsIndices;
-        if (!cvRects.empty()) cv::dnn::NMSBoxes(cvRects, filteredScores, conf_thres, iou_thres, nmsIndices);
-
-        // Allocate memory for the final results
-        Eigen::MatrixXf finalKpts(nmsIndices.size(), 2);
-        std::vector<cv::Rect> finalBoxes;
-        std::vector<float> finalScores;
-        std::vector<float> finalAreas;
-        std::vector<int> finalClassIds;
-
-        finalBoxes.reserve(nmsIndices.size());
-        finalScores.reserve(nmsIndices.size());
-        finalAreas.reserve(nmsIndices.size());
-        finalClassIds.reserve(nmsIndices.size());
-
-        for (int idx : nmsIndices)
-        {
-            finalBoxes.push_back(cvRects[idx]);
-            finalScores.push_back(filteredScores[idx]);
-            finalAreas.push_back(areas[idx]);
-            finalKpts.row(finalBoxes.size() - 1) = filteredKpts.row(idx);
-            finalClassIds.push_back(classIds[idx]);
-        }
-
-        return std::make_tuple(finalBoxes, finalScores, finalKpts, finalAreas, finalClassIds);
+        return std::make_tuple(boxes, scores, labels, centers, areas);
     }
 
-    std::tuple<std::vector<cv::Rect>, std::vector<float>, Eigen::MatrixXf, std::vector<float>, std::vector<int>> Perception::scaleInferenceOutputs(const std::tuple<std::vector<cv::Rect>, std::vector<float>, Eigen::MatrixXf, std::vector<float>, std::vector<int>>& outputs, float scaleX, float scaleY)
-    {
-        // Explicitly unpack the outputs tuple
-        const std::vector<cv::Rect>& boxes = std::get<0>(outputs);
-        const std::vector<float>& scores = std::get<1>(outputs);
-        Eigen::MatrixXf kps = std::get<2>(outputs);
-        std::vector<float> areas = std::get<3>(outputs);
-        std::vector<int> classIds = std::get<4>(outputs);
-
-        // Containers for scaled outputs
-        std::vector<cv::Rect> scaledBoxes;
-        Eigen::MatrixXf scaledKps(kps.rows(), kps.cols());
-        std::vector<float> scaledAreas;
-
-        // Scale bounding boxes
-        for (size_t i = 0; i < boxes.size(); ++i) 
-        {
-            int x = static_cast<int>(boxes[i].x * scaleX);
-            int y = static_cast<int>(boxes[i].y * scaleY);
-            int width = static_cast<int>(boxes[i].width * scaleX);
-            int height = static_cast<int>(boxes[i].height * scaleY);
-            scaledBoxes.emplace_back(cv::Rect(x, y, width, height));
-        }
-
-        // Scale keypoints
-        for (int i = 0; i < kps.rows(); ++i) 
-        {
-            scaledKps(i, 0) = kps(i, 0) * scaleX;  // Scale X coordinate
-            scaledKps(i, 1) = kps(i, 1) * scaleY;  // Scale Y coordinate
-        }
-
-        // Scale areas - assuming uniform scaling for simplicity
-        scaledAreas.reserve(areas.size());
-        for (size_t i = 0; i < areas.size(); ++i) scaledAreas.push_back(areas[i] * (scaleX * scaleY));
-
-        return std::make_tuple(scaledBoxes, scores, scaledKps, scaledAreas, classIds);
-    }
-
-    cv::Mat Perception::annotateFrame(const cv::Mat& frame, const std::vector<cv::Rect>& boxes, const std::vector<float>& scores, const Eigen::MatrixXf& kps, const std::vector<int>& classIds)
-    {
-        // Create a copy of the frame to draw on
-        cv::Mat annotatedFrame = frame.clone();
-
-        for (size_t i = 0; i < boxes.size(); ++i) 
-        {
-            const cv::Rect& box = boxes[i];
-            float score = scores[i]; // Assuming you have scores ready to use
-
-            // Drawing the bounding box
-            cv::Scalar boxColor(0, 0, 255);
-            int boxThickness = 3;
-            cv::rectangle(annotatedFrame, box, boxColor, boxThickness);
-
-            // Drawing keypoints associated with this bounding box
-            if (i < static_cast<size_t>(kps.rows())) cv::circle(annotatedFrame, cv::Point(static_cast<int>(kps(i, 0)), static_cast<int>(kps(i, 1))), 5, cv::Scalar(0, 0, 255), -1);
-
-            // Preparing text to display (score and area)
-            std::stringstream ss;
-            if (classIds[i] == 0) ss << std::fixed << std::setprecision(2) << "Weed Score:" << score;
-            else if (classIds[i] == 1) ss << std::fixed << std::setprecision(2) << "Crop Score:" << score;
-            std::string text = ss.str();
-
-            // Calculating text size to position it inside or above the box
-            int baseLine;
-            cv::Size textSize = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-
-            // Drawing text background for better contrast
-            cv::rectangle(annotatedFrame, cv::Point(box.x, box.y - textSize.height - baseLine - 3), cv::Point(box.x + textSize.width, box.y), cv::Scalar(0, 0, 0), -1);
-
-            // Displaying the text
-            cv::putText(annotatedFrame, text, cv::Point(box.x, box.y - baseLine), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
-        }
-
-        return annotatedFrame;
-    }
-
-    std::shared_ptr<alpha_perception::msg::DetectionArray> Perception::prepareDetectionResultsMessage(const Eigen::MatrixXf& kps, const std::vector<float>& scores, const std::vector<cv::Rect>& boxes, const std::vector<float>& areas, const std::vector<int>& classIds, const std_msgs::msg::Header& header)
+    std::shared_ptr<alpha_perception::msg::DetectionArray> alpha::Perception::prepareDetectionResultsMessage_(const std::vector<cv::Rect2f>& boxes, const std::vector<float>& scores, const std::vector<int64_t>& labels, const std::vector<cv::Point2f>& centers, const std::vector<float>& areas, const std_msgs::msg::Header& header)
     {
         std::shared_ptr<alpha_perception::msg::DetectionArray> detection_array_msg = std::make_shared<alpha_perception::msg::DetectionArray>();
+        detection_array_msg->header = header;
 
-        // Set the message header
-        detection_array_msg->header = header;  // Set the passed header
-
-        for (size_t i = 0; i < boxes.size(); ++i) 
+        for (size_t i = 0; i < boxes.size(); ++i)
         {
-            if (classIds[i] == 0)
-            {
-                alpha_perception::msg::BoundingBox box_msg;
-                
-                box_msg.x = boxes[i].x;
-                box_msg.y = boxes[i].y;
-                box_msg.width = boxes[i].width;
-                box_msg.height = boxes[i].height;
+            if (labels[i] != 1) continue;
 
-                box_msg.score = scores[i];
-                box_msg.area = areas[i];
+            alpha_perception::msg::BoundingBox box_msg;
 
-                // Add only one keypoint per object
-                alpha_perception::msg::Keypoint kp_msg;
-                kp_msg.x = kps(i, 0);
-                kp_msg.y = kps(i, 1);
-                box_msg.keypoint = kp_msg;
+            box_msg.x = boxes[i].x;
+            box_msg.y = boxes[i].y;
+            box_msg.width = boxes[i].width;
+            box_msg.height = boxes[i].height;
+            box_msg.score = scores[i];
+            box_msg.area = areas[i];
 
-                detection_array_msg->boxes.push_back(box_msg);
-            }
+            // Keypoint (center)
+            alpha_perception::msg::Keypoint kp_msg;
+            kp_msg.x = centers[i].x;
+            kp_msg.y = centers[i].y;
+            box_msg.keypoint = kp_msg;
+
+            detection_array_msg->boxes.push_back(std::move(box_msg));
         }
-
         return detection_array_msg;
     }
-
-    std::shared_ptr<sensor_msgs::msg::Image> Perception::prepareNetworkImage(const cv::Mat & annotatedImg, const std_msgs::msg::Header& header)
-    {
-        cv::Mat outImg;
-        cv::resize(annotatedImg, outImg, cv::Size(), 0.8, 0.8);
-        cv_bridge::CvImage cvImage(header, sensor_msgs::image_encodings::RGB8, outImg);
-
-        std::shared_ptr<sensor_msgs::msg::Image> out_msg = std::make_shared<sensor_msgs::msg::Image>();
-        cvImage.toImageMsg(*out_msg);
-
-        return out_msg;
-    }
-
-    std::shared_ptr<std_msgs::msg::Int16> Perception::prepareInferenceTime(const int & inferceTime)
+    
+    std::shared_ptr<std_msgs::msg::Int16> alpha::Perception::prepareInferenceTime_(const int & inferceTime)
     {
         std::shared_ptr<std_msgs::msg::Int16> out_msg = std::make_shared<std_msgs::msg::Int16>();
         out_msg->data = inferceTime;
@@ -420,62 +359,72 @@ namespace alpha
         return out_msg;
     }
 
-
-    void Perception::imageCallback_(const sensor_msgs::msg::Image & msg)
+    void alpha::Perception::imageCallback_(const sensor_msgs::msg::Image::UniquePtr & msg)
     {
         try
         {
             //Timer start
             std::chrono::_V2::system_clock::time_point start = std::chrono::high_resolution_clock::now();
-            
-            // Reading Image
-            cv::Mat frame = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::RGB8)->image;
-            // Original dimensions before resizing
-            int originalWidth = frame.cols;
-            int originalHeight = frame.rows;
 
-            // Dimensions after resizing for processing
-            int processedWidth = 640;
-            int processedHeight = 384;
+            cv::Mat frame = cv_bridge::toCvCopy(*msg, sensor_msgs::image_encodings::RGB8)->image;
 
-            // Calculate scale factors
-            double scaleX = (double)originalWidth / processedWidth;
-            double scaleY = (double)originalHeight / processedHeight;
+            std::tuple<float, int, int> meta = this->preprocessImage_(frame);
 
-            cv::Mat resizedFrame;
-            cv::resize(frame, resizedFrame, cv::Size(640, 384));
+            this->runInference_();
 
-            // Convert to float and normalize (Need this step to increase speed though it makes no sense cause doing it inside blob function, makes the preporcessing slower)
-            cv::Mat floatFrame;
-            resizedFrame.convertTo(floatFrame, CV_32FC3, 1.0 / 255.0);
-
-            // Convert to blob format for neural network
-            cv::Mat blob = cv::dnn::blobFromImage(floatFrame, 1.0, cv::Size(), cv::Scalar(), false, false);
-
-            // Inference and outputs
-            std::tuple<std::vector<cv::Rect>, std::vector<float>, Eigen::MatrixXf, std::vector<float>, std::vector<int>> outputs = this->scaleInferenceOutputs(this->performInference_(blob), scaleX, scaleY);
-            Eigen::MatrixXf kps = std::get<2>(outputs);
-            std::vector<float> scores = std::get<1>(outputs);
-            std::vector<cv::Rect> boxes = std::get<0>(outputs);
-            std::vector<float> areas = std::get<3>(outputs);
-            std::vector<int> classIds = std::get<4>(outputs);
+            std::tuple<std::vector<cv::Rect2f>, std::vector<float>, std::vector<int64_t>, std::vector<cv::Point2f>, std::vector<float>> outputs = this->postprocessDetections_(std::get<0>(meta), std::get<1>(meta), std::get<2>(meta));
 
             //Timer stop plus durations in ms
             std::chrono::_V2::system_clock::time_point stop = std::chrono::high_resolution_clock::now();
             std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 
-            this->detectionArrayPub_->publish(*(this->prepareDetectionResultsMessage(kps, scores, boxes, areas, classIds, msg.header)));
+            this->detectionArrayPub_->publish(*(this->prepareDetectionResultsMessage_(std::get<0>(outputs), std::get<1>(outputs), std::get<2>(outputs), std::get<3>(outputs), std::get<4>(outputs), msg->header)));
+            this->inferenceTimePub_->publish(*(this->prepareInferenceTime_(duration.count())));
 
-            //Publish ROS message
-            this->networkImagePub_->publish(*(this->prepareNetworkImage(this->annotateFrame(frame, boxes, scores, kps, classIds), msg.header)));
-            this->inferenceTimePub_->publish(*(this->prepareInferenceTime(duration.count())));
+            if (this->gui_)
+            {
+                cv::Mat bgrImage;
+                cv::cvtColor(frame, bgrImage, cv::COLOR_RGB2BGR);
+
+                for (size_t i = 0; i < std::get<0>(outputs).size(); ++i)
+                {
+                    if (std::get<2>(outputs)[i] != 1) continue;
+
+                    const cv::Rect2f& box = std::get<0>(outputs)[i];
+                    const cv::Point2f& center = std::get<3>(outputs)[i];
+                    float score = std::get<1>(outputs)[i];
+
+                    // Draw bounding box
+                    cv::rectangle(bgrImage, box, cv::Scalar(255, 0, 0), 5);
+
+                    // Draw keypoint (center)
+                    cv::circle(bgrImage, center, 8, cv::Scalar(0, 0, 255), -1);
+
+                    // Draw score text
+                    std::string text = cv::format("%.2f", score);
+                    cv::putText(bgrImage, text, cv::Point(box.x, box.y - 5), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(255, 0, 0), 2);
+                }
+
+                // --- Draw FPS in top-right ---
+                float fps = 1000.0f / duration.count();  // duration is in milliseconds
+                std::string fps_text = cv::format("FPS: %.1f", fps);
+                int baseline = 0;
+                cv::Size textSize = cv::getTextSize(fps_text, cv::FONT_HERSHEY_SIMPLEX, 1.5, 2, &baseline);
+                cv::Point textOrigin(bgrImage.cols - textSize.width - 20, textSize.height + 20);
+                cv::putText(bgrImage, fps_text, textOrigin, cv::FONT_HERSHEY_SIMPLEX, 1.5, cv::Scalar(255, 0, 0), 2);
+
+                // Resize and show image
+                cv::Mat resizedDisplay;
+                cv::resize(bgrImage, resizedDisplay, cv::Size(), 0.5, 0.5);
+                cv::imshow("Alpha Perception", resizedDisplay);
+                cv::waitKey(1);
+            }
         }
         catch(cv_bridge::Exception& e)
         {
             RCLCPP_ERROR(this->get_logger(), "Cv Bridge error: %s", e.what());
         }
     }
-
 }
 
 int main(int argc, char * argv[])

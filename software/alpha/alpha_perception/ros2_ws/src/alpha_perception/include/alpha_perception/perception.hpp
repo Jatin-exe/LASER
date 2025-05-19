@@ -14,9 +14,7 @@
  * This license does NOT apply to any AgCeption™ branded systems or L&Aser Beta modules.
 */
 
-
-#ifndef PERCEPTION_HPP_
-#define PERCEPTION_HPP_
+#pragma once
 
 // ROS includes
 #include <rclcpp/rclcpp.hpp>
@@ -24,6 +22,8 @@
 
 // Header Msg
 #include <std_msgs/msg/header.hpp>
+
+// Int 16 Msg
 #include <std_msgs/msg/int16.hpp>
 
 // Sensor Msgs
@@ -35,6 +35,7 @@
 // CUDA TensorRT Includes
 #include <cuda_runtime_api.h>
 #include <NvInfer.h>
+#include <cuda_fp16.h>
 
 // Eigen3 Includes
 #if defined __GNUC__ || defined __APPLE__
@@ -55,6 +56,9 @@
 #include <fstream> 
 #include <memory>
 
+// Kernels
+# include "perception_kernels.cuh"
+
 namespace alpha 
 {
     class Logger : public nvinfer1::ILogger
@@ -74,53 +78,66 @@ namespace alpha
 
     class Perception : public rclcpp::Node
     {
-    private:
-        // ROS Functions
-        rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr imageDataSub_;
-        rclcpp::Publisher<alpha_perception::msg::DetectionArray>::SharedPtr detectionArrayPub_;
-        rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr networkImagePub_;
-        rclcpp::Publisher<std_msgs::msg::Int16>::SharedPtr inferenceTimePub_;
-        void imageCallback_(const sensor_msgs::msg::Image & msg);
+        private:
+            // ROS Functions
+            rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr imageDataSub_;
+            rclcpp::Publisher<alpha_perception::msg::DetectionArray>::SharedPtr detectionArrayPub_;
+            rclcpp::Publisher<std_msgs::msg::Int16>::SharedPtr inferenceTimePub_;
+            void imageCallback_(const sensor_msgs::msg::Image::UniquePtr & msg);
 
-        // TensorRT and CUDA members
-        nvinfer1::IRuntime* runtime_;
-        nvinfer1::ICudaEngine* engine_;
-        nvinfer1::IExecutionContext* context_;
-        cudaStream_t stream_;
+            // TensorRT and CUDA members
+            nvinfer1::IRuntime* runtime_ = nullptr;
+            nvinfer1::ICudaEngine* engine_ = nullptr;
+            nvinfer1::IExecutionContext* context_ = nullptr;
 
-        // Host and device buffers
-        std::vector<float> imageHostBuffer_;
-        std::vector<float> outputHostBuffer_;
-        void* imageDeviceBuffer_;
-        void* outputDeviceBuffer_;
+            // TensorRT loader
+            bool loadTRTEngine_(const std::string& engineFilePath);
 
-        // Buffer sizes
-        int imageSize_;
-        int outputSize_;
+            // CUDA stream
+            cudaStream_t stream_ = nullptr;
 
-        // TensorRT functions
-        bool loadTRTEngine_(const std::string& engineFilePath);
-        std::tuple<std::vector<cv::Rect>, std::vector<float>, Eigen::MatrixXf, std::vector<float>, std::vector<int>> performInference_(const cv::Mat& inputMat);
+            // Dynamic buffers
+            std::unordered_map<std::string, void*> deviceBuffers_;
+            std::unordered_map<std::string, std::vector<__half>> hostFP16_;
+            std::unordered_map<std::string, std::vector<int64_t>> hostInt64_;
 
-        // Helper Functions
-        int calculateVolume_(const nvinfer1::Dims& d);
-        std::vector<float> matToVector_(const cv::Mat& mat);
-        std::tuple<std::vector<cv::Rect>, std::vector<float>, Eigen::MatrixXf, std::vector<float>, std::vector<int>> postProcess_(Eigen::MatrixXf& data, float conf_thres = 0.25, float iou_thres = 0.15);
-        std::tuple<std::vector<cv::Rect>, std::vector<float>, Eigen::MatrixXf, std::vector<float>, std::vector<int>> scaleInferenceOutputs(const std::tuple<std::vector<cv::Rect>, std::vector<float>, Eigen::MatrixXf, std::vector<float>, std::vector<int>>& outputs, float scaleX, float scaleY);
+            // Pinned Memory
+            uchar3* pinnedHostInput_ = nullptr;
+            uchar3* deviceInput_ = nullptr;
+            size_t maxInputSize_ = 1920 * 1088;
 
-        //GUI 
-        cv::Mat annotateFrame(const cv::Mat& frame, const std::vector<cv::Rect>& boxes, const std::vector<float>& scores, const Eigen::MatrixXf& kps, const std::vector<int>& classIds);
-        void warmUpModel(const std::string& imagePath, int warmUpIterations);
+            // Persistent GPU memory for postprocessing
+            alpha::perception_kernels::Detection* deviceDetections_ = nullptr;
+            int* deviceValidCount_ = nullptr;
 
-        // Publisher for custom message
-        std::shared_ptr<alpha_perception::msg::DetectionArray> prepareDetectionResultsMessage(const Eigen::MatrixXf& kps, const std::vector<float>& scores, const std::vector<cv::Rect>& boxes, const std::vector<float>& areas, const std::vector<int>& classIds,const std_msgs::msg::Header& header);
-        std::shared_ptr<sensor_msgs::msg::Image> prepareNetworkImage(const cv::Mat & annotatedImg, const std_msgs::msg::Header& header);
-        std::shared_ptr<std_msgs::msg::Int16> prepareInferenceTime(const int & inferceTime);
+            // Persistent CPU memory to avoid per-frame allocation
+            std::vector<alpha::perception_kernels::Detection> hostDetections_;
 
-    public:
-        Perception();
-        ~Perception();
+            // Setup function
+            bool setupBuffers_();
+
+            // Calcuate for dynamic buffers
+            int calculateVolume_(const nvinfer1::Dims& dims);
+
+            // Preprocess
+            std::tuple<float, int, int> preprocessImage_(const cv::Mat& input);
+
+            // Forward pass
+            void runInference_();
+
+            // PostProcess
+            std::tuple<std::vector<cv::Rect2f>, std::vector<float>, std::vector<int64_t>, std::vector<cv::Point2f>, std::vector<float>> postprocessDetections_(float ratio, int pad_w, int pad_h, float conf_thresh = 0.5f);
+
+            // Custom message 
+            std::shared_ptr<alpha_perception::msg::DetectionArray> prepareDetectionResultsMessage_(const std::vector<cv::Rect2f>& boxes, const std::vector<float>& scores, const std::vector<int64_t>& labels, const std::vector<cv::Point2f>& centers, const std::vector<float>& areas, const std_msgs::msg::Header& header);
+
+            // Inference Time
+            std::shared_ptr<std_msgs::msg::Int16> prepareInferenceTime_(const int & inferceTime);
+
+            // Vis
+            bool gui_ = false;
+        public:
+            Perception();
+            ~Perception();
     };
 }
-
-#endif

@@ -16,9 +16,13 @@
 
 cmake_minimum_required(VERSION 3.8)
 project(alpha_perception)
+enable_language(CUDA)
+
+set(CMAKE_CUDA_ARCHITECTURES 75 80 86 89 90)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+  add_compile_options(-Wall -Wextra -O3)
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O3 --use_fast_math")
 endif()
 
 # Find TensorRT headers and libraries.
@@ -71,7 +75,7 @@ include_directories(
   ${TENSORRT_INCLUDE_DIR}
 )
 
-add_executable(perception src/perception.cpp)
+add_executable(perception src/perception.cpp src/perception_kernels.cu)
 ament_target_dependencies(perception
   rclcpp
   cv_bridge
@@ -80,6 +84,12 @@ ament_target_dependencies(perception
   OpenCV
   Eigen3
 )
+
+set_target_properties(perception PROPERTIES
+  CUDA_SEPARABLE_COMPILATION ON
+  CUDA_STANDARD 14
+)
+
 
 # TensorRT libraries are linked separately
 target_link_libraries(perception
@@ -102,6 +112,11 @@ install(TARGETS
 install(
   PROGRAMS
   DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
 )
 
 if(BUILD_TESTING)
