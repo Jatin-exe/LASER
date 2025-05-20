@@ -47,7 +47,7 @@ python src/alpha_perception/scripts/download_models.py
 Once the datasets and models have been downloaded.
 
 ```bash
-bash bash start_container.sh # or ignore if already inside
+bash start_container.sh # or ignore if already inside
 ros2 launch alpha_perception perception_demo.launch.py
 ```
 
