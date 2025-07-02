@@ -1,0 +1,2 @@
+*.zip filter=lfs diff=lfs merge=lfs -text
+Beta+/hardware/L&Aser[[:space:]]Beta+[[:space:]]Galvo[[:space:]]Driver[[:space:]]PCB[[:space:]]CAD.zip filter=lfs diff=lfs merge=lfs -text
