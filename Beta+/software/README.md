@@ -10,7 +10,7 @@ bash start_container_offline.sh
 
 You may need to change paths, it is a good starting point though.
 
-Visit [https://nvidia-isaac-ros.github.io/index.html](NVIDIA ISAAC ROS) for full setup.
+Visit [NVIDIA ISAAC ROS](https://nvidia-isaac-ros.github.io/index.html) for full setup.
 
 Enter workspace and compile
 
