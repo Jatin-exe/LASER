@@ -1,0 +1,50 @@
+name: "perception_postprocessing"
+backend: "python"
+max_batch_size: 0
+
+input [
+  {
+    name: "raw_outputs"
+    data_type: TYPE_FP16  # Keypoints from superpoint model
+    dims: [ 1, -1, 5040 ]
+  },
+  {
+    name: "original_height"
+    data_type: TYPE_INT32  # Original image height
+    dims: [ 1 ]  # Single value
+  },
+  {
+    name: "original_width"
+    data_type: TYPE_INT32  # Original image width
+    dims: [ 1 ]  # Single value
+  }
+]
+
+output [
+  {
+    name: "boxes"
+    data_type: TYPE_INT32 
+    dims: [ -1, 4 ]  # Variable number of boxes, each with [x, y, width, height]
+  },
+  {
+    name: "areas" 
+    data_type: TYPE_INT32
+    dims: [ -1 ]  # Variable number of areas, one per box
+  },
+  {
+    name: "scores"
+    data_type: TYPE_FP16 
+    dims: [ -1 ]  # Variable number of scores, one per box
+  },
+  {
+    name: "keypoints"
+    data_type: TYPE_INT32
+    dims: [ -1, 2 ]  # Variable number of keypoints, each with [x, y]
+  },
+  {
+    name: "ids"
+    data_type: TYPE_INT32
+    dims: [ -1 ]  # Variable number of class IDs, one per detection
+  }
+]
+

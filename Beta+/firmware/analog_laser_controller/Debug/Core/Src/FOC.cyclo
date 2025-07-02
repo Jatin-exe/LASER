@@ -1,0 +1,5 @@
+../Core/Src/FOC.c:12:10:get_sector	1
+../Core/Src/FOC.c:55:7:shaftAngle	1
+../Core/Src/FOC.c:67:7:electricalAngle	2
+../Core/Src/FOC.c:77:6:SVPWM	10
+../Core/Src/FOC.c:177:7:align_mirror	9

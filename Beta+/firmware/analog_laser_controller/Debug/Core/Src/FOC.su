@@ -1,0 +1,5 @@
+../Core/Src/FOC.c:12:10:get_sector	16	static
+../Core/Src/FOC.c:55:7:shaftAngle	16	static
+../Core/Src/FOC.c:67:7:electricalAngle	24	static
+../Core/Src/FOC.c:77:6:SVPWM	88	static
+../Core/Src/FOC.c:177:7:align_mirror	64	static

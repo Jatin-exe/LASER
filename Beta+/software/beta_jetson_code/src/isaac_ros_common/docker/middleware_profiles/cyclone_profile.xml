@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CycloneDDS xmlns="https://cdds.io/config" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://cdds.io/config https://raw.githubusercontent.com/eclipse-cyclonedds/cyclonedds/master/etc/cyclonedds.xsd">
+  <Domain Id="any">
+    <General>
+      <Interfaces>
+        <NetworkInterface autodetermine="false" name="mgbe0" priority="default" multicast="default" />
+      </Interfaces>
+      <!-- Use multicast only for SPDP -->
+      <AllowMulticast>spdp</AllowMulticast>
+      <!-- Set maximum message size for large payloads -->
+      <MaxMessageSize>65500B</MaxMessageSize>
+      <!-- Configure fragment size for Jumbo Frames -->
+      <FragmentSize>4000B</FragmentSize>
+    </General>
+    <Discovery>
+      <!-- Specify peers for manual participant discovery -->
+      <Peers>
+        <Peer address="192.168.1.101"/> <!-- IP of Jetson 1 -->
+        <Peer address="192.168.1.102"/> <!-- IP of Jetson 2 -->
+      </Peers>
+      <ParticipantIndex>auto</ParticipantIndex>
+      <MaxAutoParticipantIndex>1000</MaxAutoParticipantIndex>
+    </Discovery>
+    <Internal>
+      <!-- Increase receive buffer size to handle large data bursts -->
+      <SocketReceiveBufferSize min="10MB"/>
+      <Watermarks>
+        <!-- Increase Write Cache High watermark for large queues -->
+        <WhcHigh>500kB</WhcHigh>
+      </Watermarks>
+    </Internal>
+  </Domain>
+</CycloneDDS>
+

@@ -1,0 +1,65 @@
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+RUN apt-get install libxcb-xinerama0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render0 libxcb-render-util0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0 -y
+
+RUN apt-get install ros-humble-launch-pytest
+
+# Copy your file into the /opt directory
+COPY VimbaX_2023-4 /opt/VimbaX_2023-4
+
+RUN sudo bash /opt/VimbaX_2023-4/cti/VimbaUSBTL_Install.sh
+
+RUN apt-get install -y google-mock
+
+RUN wget https://github.com/alliedvision/vimbax_ros2_driver/releases/download/v1.0.0/ros-humble-vimbax-camera-driver-1.0.0-arm64.deb \
+    && sudo apt install -y ./ros-humble-vimbax-camera-driver-1.0.0-arm64.deb \
+    && rm ./ros-humble-vimbax-camera-driver-1.0.0-arm64.deb
+    
+#RUN sudo apt-get install -y $(apt-cache search 'ros-humble-isaac-ros-*' | grep -vE 'ros-humble-gxf-isaac-bi3d|ros-humble-gxf-isaac-ess|ros-humble-gxf-isaac-triton|ros-humble-isaac-mapping-ros|ros-#humble-isaac-ros-pynitros|ros-humble-isaac-ros-tensor-rt|ros-humble-isaac-ros-visual-global-localization|ros-humble-cuda-python-placeholder' | awk '{print $1}')
+
+
+RUN pip3 install tritonclient[all]
+
+RUN sudo apt install -y libfmt-dev
+
+# Install necessary build tools
+RUN apt-get update && apt-get install -y \
+    git \
+    cmake \
+    build-essential \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libprotobuf-dev \
+    protobuf-compiler
+
+RUN sudo apt install -y libboost-all-dev libc6 libc6-dev libre2-dev libb64-dev
+    
+# Clone the Triton client repository
+RUN git clone -b main --recurse-submodules https://github.com/triton-inference-server/client.git /opt/triton-client
+
+# Build Triton C++ client
+RUN mkdir -p /opt/triton-client/build && \
+    cd /opt/triton-client/build && \
+    cmake -DCMAKE_INSTALL_PREFIX=`pwd`/install -DTRITON_ENABLE_CC_HTTP=OFF -DTRITON_ENABLE_CC_GRPC=ON -DTRITON_ENABLE_PERF_ANALYZER=OFF -DTRITON_ENABLE_PYTHON_HTTP=OFF -DTRITON_ENABLE_PYTHON_GRPC=OFF -DTRITON_ENABLE_JAVA_HTTP=OFF -DTRITON_ENABLE_GPU=ON -DTRITON_ENABLE_EXAMPLES=OFF -DTRITON_ENABLE_TESTS=OFF -DTRITON_COMMON_REPO_TAG=main -DTRITON_THIRD_PARTY_REPO_TAG=main -DTRITON_CORE_REPO_TAG=main -DTRITON_BACKEND_REPO_TAG=main -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_CXX_EXTENSIONS=OFF .. && \
+    make cc-clients -j$(nproc)
+    
+RUN apt-get install -y ros-humble-isaac-ros-image-proc
+
+# Add Bazel's official repository and install Bazel
+RUN wget https://github.com/bazelbuild/bazelisk/releases/download/v1.17.0/bazelisk-linux-arm64 \
+    && chmod +x bazelisk-linux-arm64 \
+    && mv bazelisk-linux-arm64 /usr/local/bin/bazel
+
+# Ensure Bazelisk is in the PATH
+ENV PATH="/usr/local/bin:${PATH}"
+
+# Verify installation
+RUN bazel --version
+
+RUN pip3 install boto3
+
+ENV AWS_ACCESS_KEY_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ENV AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ENV AWS_DEFAULT_REGION=us-west-2
+

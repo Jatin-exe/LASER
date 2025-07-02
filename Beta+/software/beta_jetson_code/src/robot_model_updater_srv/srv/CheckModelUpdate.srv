@@ -1,0 +1,6 @@
+# Request: no input
+---
+bool update_available
+string[] crops
+string[] current_versions
+string[] available_versions

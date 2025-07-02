@@ -1,0 +1,79 @@
+
+
+
+Breakpoint=C:/Users/Nick/Desktop/AgroTech/Laser Weeder 2/Software/Analog_laser_controller/analog_laser_controller/Core/Src/FOC.c:51:15, State=BP_STATE_DISABLED
+Breakpoint=C:/Users/Nick/Desktop/AgroTech/Laser Weeder 2/Software/Analog_laser_controller/analog_laser_controller/Core/Src/FOC.c:98, State=BP_STATE_DISABLED
+Breakpoint=C:/Users/Nick/Desktop/AgroTech/Laser Weeder 2/Software/Analog_laser_controller/analog_laser_controller/Core/Src/main.c:282, State=BP_STATE_DISABLED
+GraphedExpression="current_position", Color=#e56a6f
+GraphedExpression="move_position[0]", Color=#35792b
+GraphedExpression="move_position2[0]", Color=#769dda
+GraphedExpression="current_position2", Color=#b14f0d
+GraphedExpression="move_position[1]", DisplayFormat=DISPLAY_FORMAT_DEC, Color=#b3c38e
+GraphedExpression="angle_error", Color=#ab7b05
+GraphedExpression="laser_on", Color=#7fd3b7
+GraphedExpression="rms_error", Color=#50328f
+GraphedExpression="target_angle", Color=#c587a5
+OpenDocument="main.c", FilePath="C:/Users/Nick/Desktop/AgroTech/Laser Weeder 2/Software/Analog_laser_controller/analog_laser_controller/Core/Src/main.c", Line=142
+OpenDocument="stm32f7xx_it.c", FilePath="C:/Users/Nick/Desktop/AgroTech/Laser Weeder 2/Software/Analog_laser_controller/analog_laser_controller/Core/Src/stm32f7xx_it.c", Line=186
+OpenDocument="stm32f7xx_hal_dma.c", FilePath="C:/Users/Nick/Desktop/AgroTech/Laser Weeder 2/Software/Analog_laser_controller/analog_laser_controller/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma.c", Line=769
+OpenDocument="stm32f7xx_hal.c", FilePath="C:/Users/Nick/Desktop/AgroTech/Laser Weeder 2/Software/Analog_laser_controller/analog_laser_controller/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.c", Line=369
+OpenDocument="startup_stm32f746zgtx.s", FilePath="C:/Users/Nick/Desktop/AgroTech/Laser Weeder 2/Software/Analog_laser_controller/analog_laser_controller/Core/Startup/startup_stm32f746zgtx.s", Line=48
+OpenDocument="FOC.c", FilePath="C:/Users/Nick/Desktop/AgroTech/Laser Weeder 2/Software/Analog_laser_controller/analog_laser_controller/Core/Src/FOC.c", Line=88
+OpenToolbar="Debug", Floating=0, x=0, y=0
+OpenWindow="Registers 1", DockArea=RIGHT, x=0, y=1, w=584, h=469, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, FilteredItems=[], RefreshRate=1
+OpenWindow="Disassembly", DockArea=RIGHT, x=0, y=0, w=584, h=452, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Watched Data 1", DockArea=BOTTOM, x=0, y=0, w=671, h=333, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Data Sampling", DockArea=LEFT, x=0, y=0, w=517, h=922, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, VisibleTab=0, UniformSampleSpacing=0
+OpenWindow="Timeline", DockArea=FLOATING, x=1161, y=287, w=1103, h=847, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=1, DataPaneShown=1, PowerPaneShown=0, CodePaneShown=0, PinCursor="Cursor Movable", TimePerDiv="50 ms", TimeStampFormat="Time", DataGraphDrawAsPoints=0, DataGraphLegendShown=1, DataGraphUniformSampleSpacing=0, DataGraphLegendPosition="808;478", DataGraphShowNamesAtCursor=0, PowerGraphDrawAsPoints=0, PowerGraphLegendShown=0, PowerGraphAvgFilterTime=Off, PowerGraphAvgFilterLen=Off, PowerGraphUniformSampleSpacing=0, PowerGraphLegendPosition="361;0", CodeGraphLegendShown=0, CodeGraphLegendPosition="312;0"
+OpenWindow="Console", DockArea=BOTTOM, x=1, y=0, w=1888, h=333, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+SmartViewPlugin="", Page="", Toolbar="Hidden", Window="SmartView 1"
+TableHeader="Data Sampling Table", SortCol="None", SortOrder="ASCENDING", VisibleCols=["Index";"Time";" current_position";" move_position[0]";" move_position2[0]";" current_position2";" move_position[1]";" angle_error";" laser_on";" rms_error";" target_angle"], ColWidths=[100;100;100;100;100;100;100;100;100;100;100]
+TableHeader="Data Sampling Setup", SortCol="Type", SortOrder="ASCENDING", VisibleCols=["Expression";"Type";"Min";"Value";"Max";"Average";"# Changes";"Min. Change";"Max. Change"], ColWidths=[159;100;144;164;134;154;115;144;134]
+TableHeader="Power Sampling", SortCol="None", SortOrder="ASCENDING", VisibleCols=["Index";"Time";"Ch 0"], ColWidths=[100;100;100]
+TableHeader="Registers 1", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Description"], ColWidths=[249;230;329]
+TableHeader="Watched Data 1", SortCol="Expression", SortOrder="ASCENDING", VisibleCols=["Expression";"Value";"Location";"Refresh"], ColWidths=[212;176;100;157]
+TableHeader="RegisterSelectionDialog", SortCol="None", SortOrder="ASCENDING", VisibleCols=[], ColWidths=[]
+TableHeader="TargetExceptionDialog", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Address";"Description"], ColWidths=[27;27;27;45]
+WatchedExpression="encoder1", Window=Watched Data 1
+WatchedExpression="encoder2", Window=Watched Data 1
+WatchedExpression="move_time", Window=Watched Data 1
+WatchedExpression="current_position", Window=Watched Data 1
+WatchedExpression="shaft_angle", Window=Watched Data 1
+WatchedExpression="angle_electrical", Window=Watched Data 1
+WatchedExpression="pid_out2", Window=Watched Data 1
+WatchedExpression="move_position", Window=Watched Data 1
+WatchedExpression="angle_error", Window=Watched Data 1
+WatchedExpression="move_position2", Window=Watched Data 1
+WatchedExpression="pid2_out", Window=Watched Data 1
+WatchedExpression="current_position2", Window=Watched Data 1
+WatchedExpression="angle_error", Window=Watched Data 1
+WatchedExpression="rotor_offset2", Window=Watched Data 1
+WatchedExpression="shaft_angle2", Window=Watched Data 1
+WatchedExpression="rotor", Window=Watched Data 1
+WatchedExpression="home_offset", Window=Watched Data 1
+WatchedExpression="home2_offset", Window=Watched Data 1
+WatchedExpression="angle_electrical", Window=Watched Data 1
+WatchedExpression="rotor_home", Window=Watched Data 1
+WatchedExpression="angle2", Window=Watched Data 1
+WatchedExpression="angle", Window=Watched Data 1
+WatchedExpression="target_angle", Window=Watched Data 1
+WatchedExpression="temp1", Window=Watched Data 1
+WatchedExpression="angle_range", Window=Watched Data 1
+WatchedExpression="AD_RES", Window=Watched Data 1
+WatchedExpression="CCR1", Window=Watched Data 1
+WatchedExpression="TIM1->CCR1", Window=Watched Data 1
+WatchedExpression="TIM1->CCR2", Window=Watched Data 1
+WatchedExpression="TIM1->CCR3", Window=Watched Data 1
+WatchedExpression="sector", Window=Watched Data 1
+WatchedExpression="_PI_div3", Window=Watched Data 1
+WatchedExpression="angle", Window=Watched Data 1
+WatchedExpression="home_offset", Window=Watched Data 1
+WatchedExpression="AD_RES", Window=Watched Data 1
+WatchedExpression="Torq_const", Window=Watched Data 1
+WatchedExpression="laser_duration", Window=Watched Data 1
+WatchedExpression="laser_on", Window=Watched Data 1
+WatchedExpression="over_current", Window=Watched Data 1
+WatchedExpression="Laser_t", Window=Watched Data 1
+WatchedExpression="usb_rx_buffer", Window=Watched Data 1
+WatchedExpression="laser_duration", Window=Watched Data 1
+WatchedExpression="Laser_t", Window=Watched Data 1
