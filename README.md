@@ -45,7 +45,7 @@ git clone --recursive git@github.com:Laudando-Associates-LLC/LASER.git
 ```
 
 ## License
-The L&Aser is released under the [L&Aser Public Use License (Based on SSPL v1)](LICENSE), copyright © 2025 Laudando & Associates LLC.
+The L&Aser is released under the [L&Aser Public Use License (Based on SSPL v1 + CERN OHL v-2)](LICENSE), copyright © 2025 Laudando & Associates LLC.
 
 The L&A Pucks Dataset use [L&Aser Dataset Replication License (Version 1.0)](https://huggingface.co/datasets/Laudando-Associates-LLC/pucks/blob/main/LICENSE).
 
