@@ -28,7 +28,7 @@ This repository contains open-source releases of the L&Aser.
        style="width: 100%; height: auto; display: block; max-width: 100%;" />
 </p>
 
-The Dual Licensing can be viewed [here](LAser_Dual_Licensing_Summary_4_20_25.pdf).
+The Dual Licensing can be viewed [here](LAser_Dual_Licensing_Summary_V1.1_8_20_25.pdf).
 
 ## Updates
 
