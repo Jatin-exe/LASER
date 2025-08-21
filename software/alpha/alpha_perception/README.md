@@ -96,8 +96,7 @@ The D-FINE models use [Apache License 2.0](https://github.com/Peterande/D-FINE/b
 
 The L&A Pucks ROS 2 Dataset use [L&Aser Dataset Replication License (Version 1.0)](https://huggingface.co/datasets/Laudando-Associates-LLC/pucks-ros2/blob/main/LICENSE).
 
-This software is released under the [L&Aser Public Use License (Based on SSPL v1)](LICENSE), copyright © 2025
-Laudando & Associates LLC.
+The L&Aser is released under the [L&Aser Public Use License (Based on SSPL v1)](LICENSE), copyright © 2025 Laudando & Associates LLC.
 
 Please note:
 

@@ -10,12 +10,6 @@
 
 This repository contains open-source releases of the L&Aser.
 
-<div align="center">
-  <p>
-    <a href="https://www.laudando.com/fight" target="_blank">Click here to join the fight!</a>
-  </p>
-</div>
-
 <p align="center" style="margin: 0; padding: 0;">
   <img src="./media/laser.gif"
        alt="laser"
@@ -51,8 +45,7 @@ git clone --recursive git@github.com:Laudando-Associates-LLC/LASER.git
 ```
 
 ## License
-This software is released under the [L&Aser Public Use License (Based on SSPL v1)](LICENSE), copyright © 2025
-Laudando & Associates LLC. 
+The L&Aser is released under the [L&Aser Public Use License (Based on SSPL v1)](LICENSE), copyright © 2025 Laudando & Associates LLC.
 
 The L&A Pucks Dataset use [L&Aser Dataset Replication License (Version 1.0)](https://huggingface.co/datasets/Laudando-Associates-LLC/pucks/blob/main/LICENSE).
 

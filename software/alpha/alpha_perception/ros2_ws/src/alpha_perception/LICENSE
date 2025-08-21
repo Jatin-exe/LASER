@@ -1,25 +1,24 @@
-L&Aser Public Use License (Based on SSPL v1)
-Version 1.0 — April 2025
+L&Aser Public Use License (Based on SSPL v1 + CERN OHL v2-S)
+Version 1.1 - August 2025
 Copyright (c) 2025 Laudando & Associates LLC
 
 Section 1. Purpose
-This License governs the use of the Alpha version only of the L&Aser firmware, control software, and associated AI models ("L&Aser Software") as well as associated system designs published under this license. It is designed to allow free use by independent growers, academic researchers, and non-commercial entities, while ensuring that commercial exploitation requires a separate paid commercial license.
-
-⚠️ This license does NOT apply to:
+The patent-pending L&Aser™ is a modular laser weeding tool combining hardware, firmware, and software. It is the highest throughput, lowest $/watt laser weeding technology on the planet, which is highly disruptive to the incumbent GM-seed + chemical herbicide paradigm of modern agriculture. We offer our technology to the world through a dual-licensing model that is designed to maximize farmer adoption and protect commercial value. This model is intended to force corporate incumbents into competition with each other through commercial licensing tiers, or else face creative destruction by independent farmers, researchers, and small OEMs/builders/integrators/service providers and the open use license available to them.
+This License governs the use of the Alpha/Beta/Beta+ version only of the L&Aser firmware, control software, and associated AI models/perception software ("L&Aser Software") as well as associated system designs published under this license. It is designed to allow free and open use by independent growers, academic researchers, non-commercial entities, and certain commercial entities (small OEMs, builders, and integrators <$10M/year in revenue) while ensuring that commercial exploitation requires a separate paid commercial license.
+This license does NOT apply to:
 - Any AgCeption™ branded software, hardware, or subsystems
-- The L&Aser Beta or Beta+ modules (current versions)
-These remain proprietary and are available ONLY under commercial license.
+These remain proprietary and are available ONLY under commercial license).
 
 Section 2. Terms and Conditions
 
 1. License Grant
-   You are granted the rights to use, modify, and redistribute the Alpha version of the L&Aser Software under the conditions outlined in this license.
+   You are granted the rights to use, modify, and redistribute the Alpha/Beta/Beta+ version of the L&Aser under the conditions outlined in this license.
 
 2. Commercial Use Restriction
-   If you make the L&Aser Software or any modified version available to third parties as part of a service (e.g., field robotics, automated weeding systems, or decision-support platforms), you must release the entire source code of your system under this same license, including but not limited to:
+   If you make the L&Aser or any modified version available to third parties as part of a service (e.g., field robotics, automated weeding systems, or decision-support platforms), you must release the entire source code of your system under this same license, including but not limited to:
    - All orchestration and scheduling systems
    - All telemetry and data aggregation services
-   - All integration code used to embed the L&Aser Software into hardware systems
+   - All integration code used to embed the L&Aser into hardware systems
    - Any firmware, control loops, diagnostics, or visualization layers
 
 3. Prohibited Circumvention
@@ -39,7 +38,7 @@ Section 2. Terms and Conditions
    Reference hardware designs are governed separately by the CERN OHL v2-S. Commercial use of hardware derived from these designs must comply with that license, and the combination of such hardware with L&Aser Software constitutes a system subject to the terms herein.
 
 7. Patents and Trade Secrets
-   No license is granted to any proprietary patents or trade secrets of Laudando & Associates LLC except as necessary to use the Alpha version of the L&Aser Software in its unmodified, open-source form.
+   No license is granted to any proprietary patents or trade secrets of Laudando & Associates LLC. These are exclusively the property of L&A and no grant or right to profit share whatsoever is granted to Licensees.
 
 8. Kill Switch Clause
    In the event that a commercial entity engages in legal action, embargo, patent trolling, or other bad-faith behavior designed to suppress, delay, or disable the L&Aser platform:
@@ -56,9 +55,59 @@ If you wish to:
 - Use the L&Aser Software in a proprietary system
 - Embed it in a commercial agricultural product
 - Offer it as part of a paid field service
-
 You must obtain a commercial license from:
 Laudando & Associates LLC
 📩 chris@laudando.com
 
-This license is based on the Server Side Public License v1 (SSPL) and modified to meet the strategic and ethical goals of Laudando & Associates LLC in advancing sustainable and democratized agricultural technology.
+Commercial Exclusion Clause: Pursuant to the preliminary injunction placed upon Laudando & Associates LLC by the U.S. District Court, Eastern District of California in Case No. 2:24‑cv‑03012-DAD-JDP, commercial licensing for the L&Aser Alpha/Beta/Beta+ is unavailable in the United States of America except for small OEMs, machine builders, integrators, and service providers under $10M annual revenue. To discuss technology transfer agreements into innovation-friendly countries that do not violate the U.S. District Court order, please contact L&A LLC.
+
+Affiliate Exclusion Clause: To the extent that open commercial use is allowable to small OEMs, machine builders, integrators, and service providers under the terms of this License, any use, commercial profit share, sub-licensing, and all other schemes of Licensing avoidance & circumvention by small OEM, machine builder, integrator, and service provider affiliates and affiliate partners – such as startup incubators and their partners (e.g., The Reservoir and Western Growers, Taylor Farms, Tanimura & Antle, John Deere, Naturipe Berry Growers) is expressly forbidden.
+Section 6. Additional Terms & Conditions for Open Commercial Licensing (Small OEMs <$10M Annual Revenue)
+1.	Automatic Termination. Upon Exceeding Revenue Threshold This License shall automatically terminate without notice if Licensee’s annual gross revenue derived, directly or indirectly, from agricultural automation products or services including the Licensed Technology exceeds Ten Million U.S. Dollars (USD $10,000,000) in any calendar year. For the purposes of calculating this threshold, all revenue of Licensee and its affiliates, subsidiaries, parent companies, or any entities under common control shall be aggregated.
+
+Upon such termination, Licensee must immediately cease all use of the Licensed Technology, destroy or return all copies thereof, and certify compliance in writing to Licensor within thirty (30) days. At Licensor’s sole discretion, Licensee may transition to an applicable commercial license tier under Licensor’s then-current terms.
+
+2.	Audit Rights. Licensor shall have the right, upon thirty (30) days’ prior written notice, to audit Licensee’s books, records, and accounts (including those of its affiliates, subsidiaries, and parent companies) as reasonably necessary to verify compliance with the revenue threshold and other terms of this License. Such audits shall be conducted no more than once per calendar year, during normal business hours, and in a manner designed to minimize disruption of Licensee’s business.
+
+If an audit reveals that Licensee has exceeded the revenue threshold without transitioning to an applicable commercial license tier, or has otherwise materially breached this License, Licensee shall reimburse Licensor for all audit costs in addition to any fees, damages, or remedies due under this License.
+
+3.	No Sublicense or Assignment. Licensee shall not sublicense, assign, transfer, or otherwise convey any rights granted under this License to any third party, whether directly or indirectly, without the prior written consent of Licensor. Any attempt to sublicense, assign, transfer, or otherwise convey such rights without Licensor’s express written consent shall be null and void and shall constitute a material breach of this License, resulting in immediate termination.
+
+For the avoidance of doubt, this prohibition includes but is not limited to sublicensing, assignment, or transfer to any competitor of Licensor, including large agricultural equipment manufacturers (e.g., John Deere), agrochemical companies (e.g., Bayer), startup incubators (e.g., The Reservoir), or affiliates thereof (e.g., Western Growers, Taylor Farms, Tanimura & Antle, Naturipe Berry Growers).
+
+4.	Step-Up License Path In the event that Licensee’s annual revenue attributable to agricultural automation products, including L&Aser revenues, exceeds the $10M threshold, Licensee may elect to transition into a higher commercial license tier offered by Licensor. 
+
+a.	Notice Requirement: Licensee must provide written notice to Licensor within thirty (30) days of crossing the $10M revenue threshold.
+b.	Grace Period: Upon such notice, Licensee shall have ninety (90) days to execute a commercial license agreement with Licensor under the then-current terms for higher-tier licensees.
+
+c.	Continuity of Rights: During the grace period, Licensee may continue to use the Licensed Technology without interruption, provided Licensee is actively engaged in good-faith negotiations with Licensor for a step-up license.
+
+d.	Failure to Transition: If Licensee fails to execute a commercial license within the grace period, all rights granted under this License shall automatically terminate, and Licensee shall immediately cease use of the Licensed Technology.
+This license is based on the Server Side Public License v1 (SSPL) + CERN OHL v2-S and modified to meet the strategic and ethical goals of Laudando & Associates LLC in advancing open & independent agriculture technology development outside of monopolistic control.
+Anarchotechnofarmer Liability Waiver
+(updated 1 July 2025)
+IMPORTANT — READ CAREFULLY BEFORE DOWNLOADING, CLONING, COMPILING, INSTALLING, RUNNING, MODIFYING, DISTRIBUTING, OR OTHERWISE USING ANY PART OF THIS REPOSITORY (THE “SOFTWARE,” “HARDWARE DESIGNS,” OR “DOCUMENTATION”).
+Dual-Licensing Context.
+This project is released under a dual-licensing framework: an open-source license for independent farmers, non-commercial, and research use and a separate commercial license that provides warranty, support, and other commercial rights. Nothing in this waiver diminishes Laudando & Associates LLC (“L&A”)’s rights to offer or enforce the commercial license, nor constitutes a waiver of any fees L&A may charge for commercial or OEM deployment. Contact chris@laudando.com to obtain commercial terms.
+Assumption of Risk.
+You acknowledge that Class 4 lasers can pose significant hazards—including eye or skin injury, fire, property damage, loss of crops, data loss, business interruption, and other economic or bodily harm. You voluntarily assume all risks, known and unknown, arising from your use, reproduction, modification, integration, or distribution of the Software, Hardware or Firmware herein.
+Complete Liability Release.
+To the fullest extent permitted by applicable law, you irrevocably RELEASE, DISCHARGE, AND HOLD HARMLESS L&A, its officers, directors, employees, contractors, shareholders, affiliates, successors, and assigns (collectively, the “Released Parties”) from any and all claims, demands, causes of action, damages, losses, costs, expenses, or liabilities of every kind and nature—whether in contract, tort (including negligence), strict liability, product liability, statutory liability, or otherwise—including but not limited to personal injury, death, property damage, economic loss, loss of profits, loss of goodwill, data loss, or consequential, incidental, special, punitive, or exemplary damages arising out of or relating to your (or any third party’s) use of the L&Aser or any software, hardware, firmware, systems, or subsystems described herein.
+No Warranty; “AS IS.”
+The Released Parties provides the contents of this repository “AS IS,” “WITH ALL FAULTS,” AND “AS AVAILABLE,” without warranty of any kind, express, implied, statutory, or otherwise, including but not limited to warranties of title, non-infringement, merchantability, fitness for a particular purpose, quiet enjoyment, or those arising from a course of dealing or trade usage.
+Indemnification.
+You agree to defend, indemnify, and hold harmless the Released Parties from and against any claim, suit, action, or proceeding of any kind—including any litigation brought in, removed to, or otherwise pending before any U.S. District Court—and all related liabilities, damages, losses, costs, and expenses (including reasonable attorneys’ fees) arising from or related to:
+ a. your use, modification, manufacture, or distribution of the Software, Hardware Designs, or Documentation;
+ b. the physical embodiment, deployment, or operation of any system or device derived from this repository;
+ c. your violation of any law, regulation, or third-party right; or
+ d. your breach of this Waiver or the applicable license.
+Compliance with Laws & Safety Standards.
+You are solely responsible for (i) ensuring compliance with all local, state, federal, and international laws and regulations (including laser-safety and agricultural-machinery standards) and (ii) implementing adequate protective measures, training, and fail-safes when deploying any system derived from or incorporating this repository.
+Severability.
+If any provision of this Waiver is held unenforceable, that provision will be modified to the minimum extent necessary to make it enforceable, and the remaining provisions will remain in full force and effect.
+Non-Transfer of IP Rights.
+ Except as expressly provided in the applicable open-source license, no patent, trademark, trade-secret, or other intellectual-property rights are transferred or waived by this Waiver. Use beyond the scope of the open-source license requires a separate written agreement with L&A.
+Governing Law & Venue.
+This Waiver is governed by the laws of the State of California, USA, excluding its conflict-of-laws provisions. All disputes arising out of or relating to this Waiver shall be resolved exclusively in the state or federal courts located in Butte County or Sacramento County, California, and you consent to personal jurisdiction and venue in those courts.
+Acknowledgement.
+By downloading, cloning, forking, compiling, installing, running, building, integrating, modifying, redistributing, or otherwise using any portion of this repository, you acknowledge that you have read, understood, and voluntarily accept this Anarchotechnofarmer Liability Waiver in its entirety.
