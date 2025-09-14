@@ -10,8 +10,11 @@ from PIL import Image
 import json
 import argparse
 from tqdm import tqdm
+import torch_ttnn
 
 from src.core import YAMLConfig
+
+use_tt = os.getenv("USE_TT")
 
 class Model(nn.Module):
     def __init__(self, cfg):
@@ -39,9 +42,14 @@ class DFINETest:
             state = checkpoint["model"]
 
         cfg.model.load_state_dict(state)
+        if use_tt:
+            device = ttnn.open_device(device_id=0)
+            option = torch_ttnn.TorchTtnnOption(device=device, data_parallel=2)
+            self.model = torch.compile(Model(cfg), backend=torch_ttnn.backend, options=option)
+        else:
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self.model = Model(cfg).to(device)
 
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model = Model(cfg).to(device)
 
     def load_ground_truth(self, annotations_file):
         """
