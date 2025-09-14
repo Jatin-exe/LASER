@@ -7,7 +7,7 @@ class ModelDownloader:
         self.repo_id = repo_id
         self.filename = filename
         self.target_name = target_name
-        self.output_dir = Path("models") / output_subdir
+        self.output_dir = Path("output") / output_subdir
         self.temp_dir = Path("hf_temp_download")
 
     def download(self):

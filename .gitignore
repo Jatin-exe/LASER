@@ -10,7 +10,7 @@ settings.json
 *.webp
 *.onnx
 pytorch_model.bin
-/software/alpha/alpha_training/pucks_dataset
+/software/alpha/alpha_training/dataset
 /software/alpha/alpha_training/models/dfine*
 software/alpha/alpha_perception/ros2_ws/src/alpha_perception/models/dfine*
 software/alpha/alpha_perception/ros2_ws/src/alpha_perception/datasets/04-23-2024_4w
