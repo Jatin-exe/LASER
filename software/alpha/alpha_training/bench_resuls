@@ -1,0 +1,15 @@
+=== Backbone+Encoder Benchmark Summary ===
+Backend Tested     : pytorch
+Total Timed Runs   : 50
+Average Latency    : 43.459 ms
+Median Latency     : 43.530 ms
+P95 Latency        : 45.412 ms
+Throughput         : 23.01 img/s
+
+=== Backbone+Encoder Benchmark Summary ===
+Backend Tested     : ttnn
+Total Timed Runs   : 50
+Average Latency    : 46.340 ms
+Median Latency     : 46.200 ms
+P95 Latency        : 47.357 ms
+Throughput         : 21.58 img/s

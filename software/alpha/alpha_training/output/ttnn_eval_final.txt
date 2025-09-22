@@ -1,0 +1,4 @@
+DFINE_TTNN evaluation (IoU>=0.5)
+Images: 18 ScoreThr: 0.4
+TP=0 FP=1 FN=168
+Precision=0.0000 Recall=0.0000 F1=0.0000
