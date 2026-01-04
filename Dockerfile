@@ -81,19 +81,19 @@ RUN pip install --no-cache-dir \
     opencv-contrib-python-headless
 
 
-RUN git clone --recursive https://github.com/Jatin-exe/LASER.git && \
-    cd LASER/software/alpha/alpha_training && \
-    python scripts/download_models.py && \
-    python scripts/download_dataset.py && \
-# hacks to make it work outside of the docker container
-    mv pucks_dataset dataset && \
-    ln -s D-FINE/src src && \ 
-    ln -s D-FINE/configs configs && \
-    ln -s $(pwd)/dataset /dataset && \
-    ln -s $(pwd)/workspace /workspace && \
-    cp dfine_hgnetv2_n_custom.yml D-FINE/configs/dfine/custom && \
-    cp dfine_hgnetv2.yml D-FINE/configs/dfine/include && \
-    cp custom_detection.yml D-FINE/configs/dataset/
+# RUN git clone --recursive https://github.com/Jatin-exe/LASER.git && \
+#     cd LASER/software/alpha/alpha_training && \
+#     python scripts/download_models.py && \
+#     python scripts/download_dataset.py && \
+# # hacks to make it work outside of the docker container
+#     mv pucks_dataset dataset && \
+#     ln -s D-FINE/src src && \ 
+#     ln -s D-FINE/configs configs && \
+#     ln -s $(pwd)/dataset /dataset && \
+#     ln -s $(pwd)/workspace /workspace && \
+#     cp dfine_hgnetv2_n_custom.yml D-FINE/configs/dfine/custom && \
+#     cp dfine_hgnetv2.yml D-FINE/configs/dfine/include && \
+#     cp custom_detection.yml D-FINE/configs/dataset/
 
 
 
