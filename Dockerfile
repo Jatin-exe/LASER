@@ -96,9 +96,13 @@ RUN pip install --no-cache-dir \
 #     cp custom_detection.yml D-FINE/configs/dataset/
 
 
-
+RUN curl -Lk 'https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-x64' | tar -xz -C /usr/local/bin
 
 WORKDIR /workdir
+
+ENV VSC_NODE_NAME=${VSC_NODE_NAME:-tt-on-koyeb}
+
+
 
 WORKDIR /workspace
 
@@ -106,4 +110,8 @@ COPY start.sh /workdir/start.sh
 
 ENTRYPOINT ["/usr/local/bin/koyeb-entrypoint.sh"]
 
+# run   code tunnel --name "$VSC_NODE_NAME" --accept-server-license-terms
+
 CMD ["/workdir/start.sh"]
+
+
