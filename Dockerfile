@@ -4,23 +4,19 @@ FROM ${BASE_IMAGE}
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    apt-utils \
-    ca-certificates \
-    openssh-client \
-    iptables \
-    gnupg \
-    software-properties-common \
-    wget \
-    libc6 \
-    libstdc++6 \
-    curl \
-    bash \
-    git \
-    vim \
-    iptables && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
+RUN apt-get update && apt-get install -y openssh-server sudo && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /root/.ssh \
+    && touch /root/.ssh/authorized_keys \
+    && chmod 700 /root/.ssh \
+    && chmod 600 /root/.ssh/authorized_keys
+
+RUN echo "HostKeyAlgorithms +ssh-rsa" >>/etc/ssh/sshd_config \
+    && echo "PubkeyAcceptedKeyTypes +ssh-rsa" >>/etc/ssh/sshd_config
+
+RUN service ssh start
 
 # Docker
 
@@ -50,68 +46,24 @@ RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh /usr/local/bin/docker-entrypoi
 
 VOLUME /var/lib/docker
 
-# Tailscale
-
-COPY --from=docker.io/tailscale/tailscale:stable /usr/local/bin/tailscaled /workdir/tailscaled
-COPY --from=docker.io/tailscale/tailscale:stable /usr/local/bin/tailscale /workdir/tailscale
-RUN mkdir -p /var/run/tailscale /var/cache/tailscale /var/lib/tailscale
-
-# Setup for LASER/D-FINE on Tenstorrent
-
-#RUN git clone https://github.com/tenstorrent/pytorch2.0_ttnn.git
-#    cd pytorch2.0_ttnn
-#    pip install -e .
-
-
-#RUN pip install --no-cache-dir \
-#    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 && \
-
-RUN pip install --no-cache-dir \
-    faster-coco-eval \
-    PyYAML \
-    tensorboard \
-    scipy \
-    calflops \
-    transformers \
-    loguru \
-    matplotlib \
-    onnx \
-    onnxsim \
-    onnxruntime \
-    opencv-contrib-python-headless
-
-
-# RUN git clone --recursive https://github.com/Jatin-exe/LASER.git && \
-#     cd LASER/software/alpha/alpha_training && \
-#     python scripts/download_models.py && \
-#     python scripts/download_dataset.py && \
-# # hacks to make it work outside of the docker container
-#     mv pucks_dataset dataset && \
-#     ln -s D-FINE/src src && \ 
-#     ln -s D-FINE/configs configs && \
-#     ln -s $(pwd)/dataset /dataset && \
-#     ln -s $(pwd)/workspace /workspace && \
-#     cp dfine_hgnetv2_n_custom.yml D-FINE/configs/dfine/custom && \
-#     cp dfine_hgnetv2.yml D-FINE/configs/dfine/include && \
-#     cp custom_detection.yml D-FINE/configs/dataset/
+WORKDIR /workdir
 
 
 RUN curl -Lk 'https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-x64' | tar -xz -C /usr/local/bin
 
-WORKDIR /workdir
 
 ENV VSC_NODE_NAME=${VSC_NODE_NAME:-tt-on-koyeb}
 
 
 
-WORKDIR /workspace
-
-COPY start.sh /workdir/start.sh
+COPY start.sh /start.sh
 
 ENTRYPOINT ["/usr/local/bin/koyeb-entrypoint.sh"]
 
-# run   code tunnel --name "$VSC_NODE_NAME" --accept-server-license-terms
+CMD ["/start.sh"]
 
-CMD ["/workdir/start.sh"]
+
+
+
 
 
