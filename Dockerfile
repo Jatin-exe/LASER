@@ -29,6 +29,8 @@ RUN mkdir -pm755 /etc/apt/keyrings && curl -o /etc/apt/keyrings/docker.asc -fsSL
     docker-buildx-plugin \
     docker-compose-plugin \
     pigz \
+    neovim \
+    file \
     xz-utils && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
 
