@@ -2,6 +2,10 @@ ARG BASE_IMAGE=ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-22.04-release-amd
 
 FROM ${BASE_IMAGE}
 
+ARG CACHE_BUST=1
+RUN echo "cache bust ${CACHE_BUST}"
+
+
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y openssh-server sudo && \
