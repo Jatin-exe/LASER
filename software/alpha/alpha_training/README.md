@@ -60,6 +60,18 @@ The D-FINE family includes five model sizes trained on the [L&A Pucks Dataset](h
 | **CUDA**        | 12.8                                      |
 | **Environment** | Docker container with GPU access          |
 
+## Tenstorrent TTNN Checkpoint
+
+The current TTNN D-FINE port checkpoint was measured on the local Tenstorrent device through the `port/ttnn` D-FINE branch using the first 10 COCO val2017 images at eval size 640. This is a small-subset port sanity benchmark, so compare it against the Torch subset rows first and against official full COCO AP only as context.
+
+| Model | Checkpoint | AP@[IoU=0.50:0.95] | AP50 | AP75 | End-to-end latency | Resident trace latency |
+|:-----:|:----------:|:------------------:|:----:|:----:|:------------------:|:----------------------:|
+| D-FINE-N | COCO | 47.70 | 59.93 | 50.20 | 61.72ms | 27.90ms |
+| D-FINE-S | COCO | 62.90 | 77.08 | 66.56 | 125.92ms | 88.41ms |
+| D-FINE-S | Objects365+COCO | 63.85 | 81.66 | 70.82 | 125.00ms | 88.45ms |
+
+The resident trace latency isolates repeated TTNN trace execution after graph capture. End-to-end latency includes preprocessing, host/device copies, TTNN execution, output readback, and postprocessing.
+
 ## Setup
 
 ### D-FINE as submodule

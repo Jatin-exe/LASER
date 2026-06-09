@@ -1,6 +1,9 @@
 build
 install
 log
+/checkpoints/
+/data/
+/generated/
 *.onnx
 *.trt
 settings.json
@@ -11,9 +14,12 @@ settings.json
 *.onnx
 pytorch_model.bin
 /software/alpha/alpha_training/dataset
+/software/alpha/alpha_training/data/
+/software/alpha/alpha_training/generated/
+/software/alpha/alpha_training/output/
+/software/alpha/alpha_training/checkpoints/
 /software/alpha/alpha_training/models/dfine*
 software/alpha/alpha_perception/ros2_ws/src/alpha_perception/models/dfine*
 software/alpha/alpha_perception/ros2_ws/src/alpha_perception/datasets/04-23-2024_4w
 .ttnn_runtime_artifacts
 __pycache__
-

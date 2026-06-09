@@ -216,10 +216,8 @@ class TTNNConv2d(nn.Module):
             bias, dtype=self.dtype, layout=ttnn.ROW_MAJOR_LAYOUT, device=device
         )
 
-        conv_activation = activation if activation is not None else ""
         self.conv_config = ttnn.Conv2dConfig(
             weights_dtype=self.weight.dtype,
-            activation=conv_activation,
             output_layout=self.layout,
         )
         self.compute_config = None
